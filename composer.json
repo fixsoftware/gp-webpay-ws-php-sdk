@@ -1,0 +1,17 @@
+{
+  "name": "fixsoftware/webpay-ws",
+  "description": "GP Webpay WS API",
+  "type": "library",
+  "keywords": ["gpwebpay", "webservice", "php"],
+  "license": "MIT",
+  "homepage": "https://www.fixsoftware.cz",
+  "authors": [
+    {
+      "name": "Fix Software s.r.o.",
+      "homepage": "https://www.fixsoftware.cz"
+    }
+  ],
+  "autoload": {
+    "psr-0": { "FixSoftware\\WebpayWS": "src/" }
+  }
+}
