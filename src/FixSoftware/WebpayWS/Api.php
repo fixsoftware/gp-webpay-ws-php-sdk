@@ -4,6 +4,12 @@ namespace FixSoftware\WebpayWS;
 
 class Api {
 
+    /** @var array */
+    private $soapWrapperNameIrregulars = [
+        'processMasterPaymentRevoke' => 'masterPaymentStatus'
+        // TODO: add other irregularities
+    ];
+
     /** @var Config */
     private $config;
 
@@ -26,6 +32,7 @@ class Api {
 
         $this->config = $config;
         $this->signer = new Signer($this->config->signerPrivateKeyPath, $this->config->signerPrivateKeyPassword, $this->config->signerGpPublicKeyPath);
+        $this->signer->setLogPath($this->config->signerLogPath);
         $this->soapClient = new \SoapClient($this->config->wsdlPath, ['exceptions' => false]);
 
     }
@@ -34,11 +41,13 @@ class Api {
 
         $this->method = $method;
         $this->params = $params;
+        $this->request = null;
+        $this->response = null;
 
         try {
 
             // create Request
-            $this->request = new Request($method, $this->config->provider, $this->config->merchantNumber, $params);
+            $this->request = new Request($method, $this->config->provider, $this->config->merchantNumber, $params, $this->soapWrapperNameIrregulars);
 
             // sign Request
             $requestSignature = $this->signer->sign($this->request->getParams(), Signer::SIGNER_BASE64_DISABLE);
@@ -49,7 +58,7 @@ class Api {
             $soapResponse = $this->soapClient->__soapCall($this->request->getSoapMethod(), $this->request->getSoapData());
 
             // create Response
-            $this->response = new Response($method, $this->request->getMessageId(), $soapResponse);
+            $this->response = new Response($method, $this->request->getMessageId(), $soapResponse, $this->soapWrapperNameIrregulars);
 
             // verify Response
             $this->signer->verify($this->response->getParams(), $this->response->getSignature(), !$this->response->hasError() ? Signer::SIGNER_BASE64_DISABLE : Signer::SIGNER_BASE64_ENABLE);
@@ -60,22 +69,15 @@ class Api {
 
         return $this->response;
 
-
     }
 
     public function getRequest() {
-
-        if(!$this->request instanceof Request)
-            throw new ApiException('Request not created');
 
         return $this->request;
 
     }
 
     public function getResponse() {
-
-        if(!$this->request instanceof Request)
-            throw new ApiException('Response not created');
 
         return $this->response;
 

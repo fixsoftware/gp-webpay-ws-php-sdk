@@ -4,6 +4,19 @@ namespace FixSoftware\WebpayWS;
 
 class Response {
 
+    // NICE TO HAVE: Primary return codes
+    // NICE TO HAVE: Secondary return codes
+
+    // Master recurring statuses
+    const STATUS_MASTER_RECURRING_CREATED = 'CR';
+    const STATUS_MASTER_RECURRING_PENDING_SETTLEMENT = 'PS';
+    const STATUS_MASTER_RECURRING_VALID = 'OK';
+    const STATUS_MASTER_RECURRING_CANCELED_BY_MERCHANT = 'CM';
+    const STATUS_MASTER_RECURRING_CANCELED_BY_ISSUER = 'CI';
+    const STATUS_MASTER_RECURRING_CANCELED_BY_CARDHOLDER = 'CC';
+    const STATUS_MASTER_RECURRING_EXPIRED_CARD = 'EC';
+    const STATUS_MASTER_RECURRING_EXPIRED_NO_PAYMENT = 'EP';
+
     /** @var string */
     private $method;
 
@@ -14,7 +27,10 @@ class Response {
     private $params = [];
 
     /** @var string */
-    private $soapName;
+    private $soapWrapperName;
+
+    /** @var array */
+    private $soapWrapperNameIrregulars = [];
 
     /** @var array */
     private $soapData;
@@ -28,44 +44,46 @@ class Response {
     /** @var string|false */
     private $error = false;
 
-    public function __construct($method, $messageId, $soapData) {
+    public function __construct($method, $messageId, $soapData, $soapWrapperNameIrregulars = []) {
+
+        $this->soapWrapperNameIrregulars = $soapWrapperNameIrregulars;
 
         $this->method = $method;
         $this->messageId = $messageId;
-        $this->soapName = lcfirst(substr($this->method, $this->ucpos($this->method))) . 'Response';
+        $this->soapWrapperName = $this->getSoapWrapperName();
 
         if(isset($soapData->faultcode)) {
 
             if(!isset($soapData->detail) || empty($soapData->detail))
-                throw new ResponseException('Response fault: ' . $soapData->faultcode . ': ' . $soapData->faultstring);
+                throw new ResponseException('Intenal error: ' . $soapData->faultcode . ': ' . $soapData->faultstring);
 
             $_detail = (array) $soapData->detail;
-            $this->error = $_soapName = array_keys($_detail)[0];
+            $_soapWrapperName = array_keys($_detail)[0];
             $this->soapData = $_detail;
 
-            $this->error = $_soapName;
+            $this->error = $_soapWrapperName . ': ' . $soapData->faultstring . ' (' . $soapData->faultcode . ')';
 
         } else {
 
             $this->soapData = (array) $soapData;
 
-            if(empty($this->soapData[$this->soapName]))
+            if(empty($this->soapData[$this->soapWrapperName]))
                 throw new ResponseException('Response name was not found in the response.');
 
-            $_soapName = $this->soapName;
+            $_soapWrapperName = $this->soapWrapperName;
 
             $this->error = false;
 
         }
 
-        $this->soapData[$_soapName] = (array) $this->soapData[$_soapName];
+        $this->soapData[$_soapWrapperName] = (array) $this->soapData[$_soapWrapperName];
 
-        if($this->soapData[$_soapName]['messageId'] !== $this->messageId)
+        if($this->soapData[$_soapWrapperName]['messageId'] !== $this->messageId)
             throw new RequestException('messageId in the response is not the same as messageId in the request');
 
-        $this->signature = $this->soapData[$_soapName]['signature'];
+        $this->signature = $this->soapData[$_soapWrapperName]['signature'];
 
-        $_soapDataParams = $this->soapData[$_soapName];
+        $_soapDataParams = $this->soapData[$_soapWrapperName];
         unset($_soapDataParams['signature']);
         $this->params = $_soapDataParams;
 
@@ -94,6 +112,15 @@ class Response {
     public function getError() {
 
         return $this->error;
+
+    }
+
+    public function getSoapWrapperName() {
+
+        if(isset($this->soapWrapperNameIrregulars[$this->method]))
+            return $this->soapWrapperNameIrregulars[$this->method] . 'Response';
+
+        return lcfirst(substr($this->method, $this->ucpos($this->method))) . 'Response';
 
     }
 

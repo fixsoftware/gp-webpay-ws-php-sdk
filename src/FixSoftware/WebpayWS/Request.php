@@ -17,7 +17,10 @@ class Request {
     private $soapMethod;
 
     /** @var string */
-    private $soapName;
+    private $soapWrapperName;
+
+    /** @var array */
+    private $soapWrapperNameIrregulars = [];
 
     /** @var array */
     private $soapData;
@@ -25,11 +28,13 @@ class Request {
     /** @var string */
     private $signature;
 
-    public function __construct($method, $provider, $merchantNumber, $additionalParams) {
+    public function __construct($method, $provider, $merchantNumber, $additionalParams, $soapWrapperNameIrregulars = []) {
+
+        $this->soapWrapperNameIrregulars = $soapWrapperNameIrregulars;
 
         $this->method = $method;
         $this->soapMethod = $this->method;
-        $this->messageId = time() . mt_rand(10000, 99999) . '+' . $provider . '+' . $merchantNumber . '+' . $this->getSoapMethod();
+        $this->messageId = time() . mt_rand(10000, 99999) . '+' . $provider . '+' . $merchantNumber . '+' . $this->soapMethod;
 
         $this->params['messageId'] = $this->messageId;
         $this->params['provider'] = $provider;
@@ -37,15 +42,15 @@ class Request {
 
         $this->params = array_merge($this->params, $additionalParams);
 
-        $this->soapName = lcfirst(substr($this->method, $this->ucpos($this->method))) . 'Request';
-        $this->soapData = [[$this->soapName => $this->getParams()]];
+        $this->soapWrapperName = $this->getSoapWrapperName();
+        $this->soapData = [[$this->soapWrapperName => $this->params]];
 
     }
 
     public function setSignature($signature) {
 
         $this->signature = $signature;
-        $this->soapData[0][$this->soapName]['signature'] = $signature;
+        $this->soapData[0][$this->soapWrapperName]['signature'] = $signature;
 
     }
 
@@ -70,6 +75,15 @@ class Request {
     public function getSoapMethod() {
 
         return $this->soapMethod;
+
+    }
+
+    public function getSoapWrapperName() {
+
+        if(isset($this->soapWrapperNameIrregulars[$this->method]))
+            return $this->soapWrapperNameIrregulars[$this->method] . 'Request';
+
+        return lcfirst(substr($this->method, $this->ucpos($this->method))) . 'Request';
 
     }
 

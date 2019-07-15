@@ -24,6 +24,9 @@ class Signer {
   /** @var resource */
   private $publicKeyResource;
 
+  /** @var string */
+  private $logPath = null;
+
   const SIGNER_BASE64_DISABLE = false;
   const SIGNER_BASE64_ENABLE = true;
 
@@ -69,6 +72,12 @@ class Signer {
     if($base64)
       $digest = base64_encode($digest);
 
+    $this->log([
+      'digestText' => $digestText,
+      'digest_base64' => $base64 ? $digest : base64_encode($digest),
+      'base64' => $base64
+    ]);
+
     return $digest;
   }
 
@@ -80,10 +89,18 @@ class Signer {
    */
   public function verify (array $params, $digest, $base64 = self::SIGNER_BASE64_ENABLE) {
     $data = implode('|', $params);
+    $digest_original = $digest;
     if($base64)
       $digest = base64_decode($digest);
 
     $ok = openssl_verify($data, $digest, $this->getPublicKeyResource());
+
+    $this->log([
+      'data' => $data,
+      'digest_base64' => $base64 ? $digest_original : base64_encode($digest_original),
+      'result' => $ok,
+      'base64' => $base64
+    ]);
 
     if ($ok !== 1) {
       throw new SignerException("Digest is not correct!");
@@ -111,4 +128,32 @@ class Signer {
 
     return $this->publicKeyResource;
   }
+
+  /**
+   * @param string $logPath
+   */
+  public function setLogPath($logPath) {
+    $this->logPath = $logPath;
+  }
+
+  /**
+   * @param  [type] $data
+   * @throws SignerException
+   */
+  private function log($data) {
+
+    if($this->logPath === null)
+      return;
+
+    $caller = !empty(debug_backtrace()[1]['function']) ? debug_backtrace()[1]['function'] : null;
+    $message = Date('Y-m-d H:i:s') . ' | ' . (!empty($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '-') . ' | ' . $caller . ' | ' . json_encode($data) . "\n";
+
+    $content = null;
+    if(file_exists($this->logPath))
+        $content = file_get_contents($this->logPath);
+    if(!file_put_contents($this->logPath, $content . $message))
+      throw new SignerException('Unable to log the data.');
+
+  }
+
 }

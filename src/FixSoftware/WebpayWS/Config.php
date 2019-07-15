@@ -11,7 +11,7 @@ class Config {
     private $signerPrivateKeyPath;
     private $signerPrivateKeyPassword;
     private $signerGpPublicKeyPath;
-    private $signerLoggerPath;
+    private $signerLogPath = null;
 
     public function __construct($config) {
 
@@ -43,9 +43,9 @@ class Config {
             throw new ConfigException('signerGpPublicKeyPath not configured');
         $this->signerGpPublicKeyPath = $config['signerGpPublicKeyPath'];
 
-        if(empty($config['signerLoggerPath']))
-            throw new ConfigException('signerLoggerPath not configured');
-        $this->signerLoggerPath = $config['signerLoggerPath'];
+        if(!empty($config['signerLogPath'])) {
+            $this->signerLogPath = $config['signerLogPath'];
+        }
 
     }
 
