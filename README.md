@@ -39,9 +39,9 @@ try {
 
     // call WS for master payment status
     $response = $this->webpayWS->call(
-        $webserviceMethod, // WS action name
+        $webserviceMethod, // WS action name (see WS docs)
         [
-            // getMasterPaymentStatus params (see WS docs)
+            // request params (see WS docs)
         ]
     );
     $response_params = $response->getParams(); // gets response parameters
