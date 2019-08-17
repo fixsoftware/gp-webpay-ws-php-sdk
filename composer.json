@@ -1,5 +1,5 @@
 {
-  "name": "fixsoftware/webpay-ws",
+  "name": "fixsoftware/webpay-ws-php",
   "description": "GP Webpay WS API",
   "type": "library",
   "keywords": ["gpwebpay", "webservice", "php"],
