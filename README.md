@@ -11,7 +11,7 @@ Before implementation, please read the docs from vendor first!
 ## Installation
 
 ```sh
-composer require fixsoftware/webpay-ws-php
+composer require fixsoftware/webpay-ws-php dev-master
 ```
 
 ## Setup
