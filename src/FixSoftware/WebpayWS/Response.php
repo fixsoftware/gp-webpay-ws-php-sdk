@@ -30,7 +30,9 @@ class Response {
     private $soapWrapperName;
 
     /** @var array */
-    private $soapWrapperNameIrregulars = [];
+    private $soapWrapperNameIrregulars = [
+        'processRefund' => 'refundRequest',
+    ];
 
     /** @var array */
     private $soapData;
@@ -46,7 +48,7 @@ class Response {
 
     public function __construct($method, $messageId, $soapData, $soapWrapperNameIrregulars = []) {
 
-        $this->soapWrapperNameIrregulars = $soapWrapperNameIrregulars;
+        $this->soapWrapperNameIrregulars = array_merge($soapWrapperNameIrregulars, $this->soapWrapperNameIrregulars);
 
         $this->method = $method;
         $this->messageId = $messageId;
