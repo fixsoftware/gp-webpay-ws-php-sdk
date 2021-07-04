@@ -55,7 +55,7 @@ class Response {
         if(isset($soapData->faultcode)) {
 
             if(!isset($soapData->detail) || empty($soapData->detail))
-                throw new ResponseException('Intenal error: ' . $soapData->faultcode . ': ' . $soapData->faultstring);
+                throw new ResponseException('Internal error: ' . $soapData->faultcode . ': ' . $soapData->faultstring);
 
             $_detail = (array) $soapData->detail;
             $_soapWrapperName = array_keys($_detail)[0];
@@ -68,7 +68,7 @@ class Response {
             $this->soapData = (array) $soapData;
 
             if(empty($this->soapData[$this->soapWrapperName]))
-                throw new ResponseException('Response name was not found in the response.');
+                throw new ResponseException('Response name "'. $this->soapWrapperName .'" was not found in the response.');
 
             $_soapWrapperName = $this->soapWrapperName;
 
