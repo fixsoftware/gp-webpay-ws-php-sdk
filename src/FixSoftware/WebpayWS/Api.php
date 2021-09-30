@@ -6,8 +6,18 @@ class Api {
 
     /** @var array */
     private $soapWrapperNameIrregulars = [
-        'processMasterPaymentRevoke' => 'masterPaymentStatus'
-        // TODO: add other irregularities
+        'processMasterPaymentRevoke' => [
+            'request' => 'masterPaymentStatusRequest',
+            'response' => 'masterPaymentStatusResponse',
+        ],
+        'processBatchClose' => [
+            'request' => 'batchClose',
+            'response' => 'batchCloseResponse',
+        ],
+        'processRefund' => [
+            'request' => 'refundRequest',
+            'response' => 'refundRequestResponse',
+        ],
     ];
 
     /** @var Config */
