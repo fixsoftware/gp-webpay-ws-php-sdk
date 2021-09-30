@@ -118,7 +118,7 @@ class Response {
     public function getSoapWrapperName() {
 
         if(isset($this->soapWrapperNameIrregulars[$this->method]))
-            return $this->soapWrapperNameIrregulars[$this->method] . 'Response';
+            return $this->soapWrapperNameIrregulars[$this->method]['response'];
 
         return lcfirst(substr($this->method, $this->ucpos($this->method))) . 'Response';
 

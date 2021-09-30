@@ -81,7 +81,7 @@ class Request {
     public function getSoapWrapperName() {
 
         if(isset($this->soapWrapperNameIrregulars[$this->method]))
-            return $this->soapWrapperNameIrregulars[$this->method] . 'Request';
+            return $this->soapWrapperNameIrregulars[$this->method]['request'];
 
         return lcfirst(substr($this->method, $this->ucpos($this->method))) . 'Request';
 
